@@ -1,0 +1,35 @@
+Pusat Bantuan AspriPay
+
+AspriPay adalah mesin pembayaran untuk marketplace jasa MyAspri.
+
+== Saldo & Top-up ==
+
+Cara top-up saldo AspriPay: top-up bisa dilakukan lewat Virtual Account (VA), QRIS, e-wallet, maupun kartu, semuanya diproses melalui mitra pembayaran berlisensi. Saldo akan bertambah otomatis setelah pembayaran dikonfirmasi.
+
+Kegunaan saldo AspriPay: saldo dipakai untuk membayar jasa yang dipesan di MyAspri. Saat memesan, dana sebesar harga jasa ditahan sementara (escrow) sampai pekerjaan selesai dan dikonfirmasi.
+
+== Pesanan, Escrow & Refund ==
+
+Apa itu escrow: escrow adalah penahanan dana sementara. Uang tidak langsung diterima pekerja, tapi ditahan dulu sampai jasa benar-benar selesai, supaya pengguna terlindungi bila pekerjaan tidak dikerjakan.
+
+Kalau pesanan dibatalkan atau gagal: jika job dibatalkan atau gagal sebelum selesai, dana yang ditahan di escrow dikembalikan ke saldo AspriPay. Ketentuan potongan biaya pembatalan (bila ada) akan diinformasikan saat pemesanan.
+
+== Untuk Mitra/Worker ==
+
+Verifikasi KYC untuk worker: KYC (Know Your Customer) adalah verifikasi identitas, yaitu KTP dan dokumen pendukung sesuai kategori jasa. Verifikasi ini wajib sebelum worker bisa aktif menerima job.
+
+Kenapa worker perlu menyetor deposit: deposit/jaminan disetor sebagai syarat aktif menerima job dan sebagai mitigasi bila terjadi pembatalan sepihak. Sisa deposit dapat dikembalikan bila worker berhenti dalam status baik.
+
+Pencairan penghasilan worker: penghasilan dari job yang selesai terkumpul di wallet earnings. Worker bisa mengajukan pencairan ke rekening bank, yang dieksekusi lewat mitra pembayaran beserta bukti transfer.
+
+== Keamanan & Akun ==
+
+Keamanan data dan transaksi: data transaksi dienkripsi end-to-end (TLS 1.2+), data sensitif seperti nomor rekening dan sandi disimpan terenkripsi/di-hash, dan setiap aktivitas penting tercatat di audit log. Data kartu ditokenisasi di sisi mitra pembayaran berlisensi (PCI DSS).
+
+Cara mengganti foto atau kata sandi: masuk ke halaman Profil, ketuk ikon kamera untuk memilih foto dari galeri, dan gunakan form Ubah Kata Sandi.
+
+== Kontak ==
+
+Kontak bantuan AspriPay: myaspri@gmail.com atau 0811-7074-5567. Tim siap bantu setiap hari 08.00-21.00 WIB.
+
+Bank partner yang didukung: BCA, Mandiri, BNI, BRI, Permata.

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<!--
+  Widget chat aspripay - embeddable.
+
+  CARA PAKAI:
+  1. Untuk demo/testing: buka file ini langsung di browser.
+  2. Untuk embed di halaman website aspripay yang sudah ada:
+     copy seluruh isi tag <style> dan <script> di bawah, taruh sebelum
+     tag </body> di halaman HTML aspripay. Tidak perlu tag <!DOCTYPE>/<html>/<body> ini.
+  3. Ganti API_BASE_URL di bagian JS sesuai alamat backend production nanti
+     (sekarang masih localhost buat testing).
+-->
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Demo Widget Chat Aspripay</title>
+<style>
+  :root {
+    --maroon: #741B1B;
+    --maroon-dark: #5E1313;
+    --maroon-darker: #4A0F0F;
+    --sogan: #5C3A21;
+    --kunyit: #D99036;
+    --kunyit-light: #E9BE7A;
+    --kunyit-soft: #E2A452;
+    --mori: #F9F3EB;
+    --arang: #2E1710;
+    --gray-100: #EFE2D2;
+    --gray-200: #E3CFB9;
+    --gray-300: #CBB096;
+    --gray-500: #8A6550;
+    --gray-700: #5A3123;
+  }
+
+  #aspripay-chat-bubble {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--maroon);
+    color: var(--mori);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(74, 15, 15, 0.35);
+    font-size: 26px;
+    z-index: 9999;
+    border: 2px solid var(--kunyit-light);
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+
+  #aspripay-chat-bubble:hover {
+    background: var(--kunyit);
+    border-color: var(--maroon);
+    transform: translateY(-2px);
+  }
+
+  #aspripay-chat-window {
+    position: fixed;
+    bottom: 96px;
+    right: 24px;
+    width: 340px;
+    height: 460px;
+    background: var(--mori);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(46, 23, 16, 0.3);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    z-index: 9999;
+    border: 1px solid var(--gray-200);
+  }
+
+  #aspripay-chat-window.open {
+    display: flex;
+  }
+
+  #aspripay-chat-header {
+    background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    color: var(--mori);
+    padding: 14px 16px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--kunyit);
+  }
+
+  #aspripay-chat-close {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--mori);
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0.85;
+  }
+
+  #aspripay-chat-close:hover {
+    opacity: 1;
+    color: var(--kunyit-light);
+  }
+
+  #aspripay-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    background: var(--mori);
+  }
+
+  .aspripay-msg {
+    white-space: pre-wrap;
+    max-width: 80%;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+  }
+
+  .aspripay-msg.visitor {
+    background: var(--maroon);
+    color: var(--mori);
+    margin-left: auto;
+    border-bottom-right-radius: 2px;
+  }
+
+  .aspripay-msg.ai {
+    background: #ffffff;
+    color: var(--arang);
+    margin-right: auto;
+    border-bottom-left-radius: 2px;
+    box-shadow: 0 1px 3px rgba(46, 23, 16, 0.12);
+    border: 1px solid var(--gray-100);
+  }
+
+  .aspripay-msg.escalate-note {
+    background: var(--gray-100);
+    color: var(--sogan);
+    font-size: 12px;
+    text-align: center;
+    max-width: 100%;
+    margin: 6px auto;
+    border: 1px dashed var(--kunyit);
+  }
+
+  .aspripay-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 10px 0;
+    max-width: 90%;
+  }
+
+  .aspripay-menu-btn {
+    background: white;
+    color: #1d4ed8;
+    border: 1px solid #93c5fd;
+    border-radius: 16px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+  }
+
+  .aspripay-menu-btn:hover {
+    background: #dbeafe;
+  }
+
+  .aspripay-menu-btn.used {
+    opacity: 0.45;
+    border-color: #d1d5db;
+    color: #6b7280;
+  }
+
+  .aspripay-starter-btn {
+    background: #ffffff;
+    color: var(--maroon);
+    border: 1px solid var(--kunyit);
+    border-radius: 16px;
+    padding: 7px 13px;
+    font-size: 12.5px;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .aspripay-starter-btn:hover {
+    background: var(--kunyit);
+    color: #ffffff;
+  }
+
+  .aspripay-starter-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .aspripay-followup {
+    max-width: 90%;
+    margin: 0 auto 10px auto;
+    padding: 10px 12px;
+    background: var(--gray-100);
+    border: 1px solid var(--kunyit-light);
+    border-radius: 10px;
+  }
+
+  .aspripay-followup-text {
+    font-size: 12px;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .aspripay-followup-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .aspripay-followup-btn {
+    flex: 1 1 auto;
+    background: #ffffff;
+    color: var(--maroon);
+    border: 1px solid var(--kunyit);
+    border-radius: 16px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .aspripay-followup-btn:hover {
+    background: var(--kunyit);
+    color: #ffffff;
+  }
+
+  .aspripay-followup-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  #aspripay-chat-inputrow {
+    display: flex;
+    border-top: 1px solid var(--gray-200);
+    padding: 8px;
+    gap: 8px;
+    background: var(--mori);
+  }
+
+  #aspripay-chat-input {
+    flex: 1;
+    border: 1px solid var(--gray-300);
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 14px;
+    outline: none;
+    color: var(--arang);
+    background: #ffffff;
+  }
+
+  #aspripay-chat-input:focus {
+    border-color: var(--kunyit);
+    box-shadow: 0 0 0 2px rgba(217, 144, 54, 0.2);
+  }
+
+  #aspripay-chat-send {
+    background: var(--maroon);
+    color: var(--mori);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.15s ease;
+  }
+
+  #aspripay-chat-send:hover:not(:disabled) {
+    background: var(--kunyit);
+    color: var(--arang);
+  }
+
+  #aspripay-chat-send:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .aspripay-typing {
+    font-size: 13px;
+    color: var(--gray-500);
+    padding: 4px 12px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<button id="aspripay-chat-bubble" title="Chat dengan kami">💬</button>
+
+<div id="aspripay-chat-window">
+  <div id="aspripay-chat-header">
+    <span>Aspripay Customer Service</span>
+    <button id="aspripay-chat-close">✕</button>
+  </div>
+  <div id="aspripay-chat-messages"></div>
+  <div id="aspripay-chat-inputrow">
+    <input id="aspripay-chat-input" type="text" placeholder="Tulis pesan..." />
+    <button id="aspripay-chat-send">Kirim</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const API_BASE_URL = "http://127.0.0.1:8000";
+
+  // Pertanyaan FAQ paling umum -- tombol ini muncul begitu chat dibuka
+  // pertama kali. Klik langsung jalan lewat sendMessage() yang sama seperti
+  // ngetik manual, jadi tetap lewat backend RAG asli, bukan jawaban hardcode.
+  const STARTER_QUESTIONS = [
+    "Bagaimana cara top up saldo?",
+    "Berapa biaya transfer ke bank lain?",
+  ];
+
+  function getConversationId() {
+    let id = localStorage.getItem("aspripay_conversation_id");
+    if (!id) {
+      id = "conv_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem("aspripay_conversation_id", id);
+    }
+    return id;
+  }
+
+  const conversationId = getConversationId();
+
+  const bubble = document.getElementById("aspripay-chat-bubble");
+  const chatWindow = document.getElementById("aspripay-chat-window");
+  const closeBtn = document.getElementById("aspripay-chat-close");
+  const messagesEl = document.getElementById("aspripay-chat-messages");
+  const inputEl = document.getElementById("aspripay-chat-input");
+  const sendBtn = document.getElementById("aspripay-chat-send");
+
+  bubble.addEventListener("click", () => {
+    chatWindow.classList.toggle("open");
+    if (chatWindow.classList.contains("open")) {
+      inputEl.focus();
+    }
+  });
+
+  closeBtn.addEventListener("click", () => {
+    chatWindow.classList.remove("open");
+  });
+
+  function appendMessage(text, sender) {
+    const el = document.createElement("div");
+    el.className = "aspripay-msg " + sender;
+    el.textContent = text;
+    messagesEl.appendChild(el);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function appendEscalateNote() {
+    const el = document.createElement("div");
+    el.className = "aspripay-msg escalate-note";
+    el.textContent = "Pertanyaan ini sudah diteruskan ke agent kami. Mohon tunggu sebentar.";
+    messagesEl.appendChild(el);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // Tombol FAQ awal (statis, frontend doang) -- klik memanggil sendMessage()
+  // persis seperti kalau pengunjung ngetik sendiri, riwayatnya tetap normal.
+  function appendStarterQuestions(questions) {
+    const box = document.createElement("div");
+    box.className = "aspripay-menu";
+
+    questions.forEach((q) => {
+      const btn = document.createElement("button");
+      btn.className = "aspripay-starter-btn";
+      btn.textContent = q;
+      btn.addEventListener("click", () => {
+        box.querySelectorAll("button").forEach((b) => (b.disabled = true));
+        sendMessage(q);
+      });
+      box.appendChild(btn);
+    });
+
+    messagesEl.appendChild(box);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // Jawaban berbentuk daftar dikirim backend sebagai quick_replies -- detailnya
+  // sudah ikut terkirim, jadi klik tombol tidak perlu manggil server lagi.
+  function appendQuickReplies(items) {
+    const box = document.createElement("div");
+    box.className = "aspripay-menu";
+
+    items.forEach((item) => {
+      const btn = document.createElement("button");
+      btn.className = "aspripay-menu-btn";
+      btn.textContent = item.label;
+      btn.addEventListener("click", () => {
+        btn.classList.add("used");
+        appendMessage(item.label, "visitor");
+        appendMessage(item.detail, "ai");
+      });
+      box.appendChild(btn);
+    });
+
+    messagesEl.appendChild(box);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // Tawaran menghubungi CS -- dipakai waktu backend kirim followup_options.
+  function appendFollowup(message, options) {
+    const box = document.createElement("div");
+    box.className = "aspripay-followup";
+
+    const text = document.createElement("div");
+    text.className = "aspripay-followup-text";
+    text.textContent = message;
+    box.appendChild(text);
+
+    const actions = document.createElement("div");
+    actions.className = "aspripay-followup-actions";
+
+    options.forEach((opt) => {
+      const btn = document.createElement("button");
+      btn.className = "aspripay-followup-btn";
+      btn.textContent = opt.label;
+      btn.addEventListener("click", async () => {
+        actions.querySelectorAll("button").forEach((b) => (b.disabled = true));
+        if (opt.action === "contact_agent") {
+          await requestAgent();
+        }
+        box.remove();
+      });
+      actions.appendChild(btn);
+    });
+
+    box.appendChild(actions);
+    messagesEl.appendChild(box);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  async function requestAgent() {
+    try {
+      const res = await fetch(API_BASE_URL + "/api/chat/escalate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversation_id: conversationId }),
+      });
+      if (!res.ok) throw new Error("gagal");
+      appendEscalateNote();
+    } catch (err) {
+      appendMessage("Maaf, gagal menghubungkan ke CS. Silakan coba lagi.", "ai");
+    }
+  }
+
+  function showTyping() {
+    const el = document.createElement("div");
+    el.className = "aspripay-typing";
+    el.id = "aspripay-typing-indicator";
+    el.textContent = "Sedang mengetik...";
+    messagesEl.appendChild(el);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function hideTyping() {
+    const el = document.getElementById("aspripay-typing-indicator");
+    if (el) el.remove();
+  }
+
+  // presetText opsional -- diisi kalau dipanggil dari tombol starter question,
+  // kalau kosong berarti dari tombol Kirim/Enter, ambil dari kotak input.
+  async function sendMessage(presetText) {
+    const text = (presetText !== undefined ? presetText : inputEl.value).trim();
+    if (!text) return;
+
+    appendMessage(text, "visitor");
+    if (presetText === undefined) inputEl.value = "";
+    sendBtn.disabled = true;
+    showTyping();
+
+    try {
+      const res = await fetch(API_BASE_URL + "/api/chat/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversation_id: conversationId,
+          message: text,
+        }),
+      });
+
+      hideTyping();
+
+      if (!res.ok) {
+        appendMessage("Maaf, terjadi kesalahan. Silakan coba lagi.", "ai");
+        return;
+      }
+
+      const data = await res.json();
+      appendMessage(data.answer, "ai");
+
+      if ((data.quick_replies || []).length) {
+        appendQuickReplies(data.quick_replies);
+      }
+
+      if (data.should_escalate) {
+        appendEscalateNote();
+      } else if (data.followup_message && (data.followup_options || []).length) {
+        appendFollowup(data.followup_message, data.followup_options);
+      }
+    } catch (err) {
+      hideTyping();
+      appendMessage("Tidak bisa terhubung ke server. Periksa koneksi Anda.", "ai");
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  sendBtn.addEventListener("click", () => sendMessage());
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendMessage();
+  });
+
+  appendMessage("Halo! Ada yang bisa kami bantu seputar aspripay?", "ai");
+  appendStarterQuestions(STARTER_QUESTIONS);
+})();
+</script>
+
+</body>
+</html>

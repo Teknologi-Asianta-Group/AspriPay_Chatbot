@@ -1,0 +1,78 @@
+erDiagram
+    CONTACT ||--o{ CONVERSATION : memulai
+    CONTACT ||--o{ CONTACT_TAG : memiliki
+    TAG ||--o{ CONTACT_TAG : dipakai_di
+    CONVERSATION ||--o{ MESSAGE : berisi
+    CONVERSATION }o--|| AGENT : ditangani_oleh
+    KNOWLEDGE_BASE_DOCUMENT ||--o{ KB_CHUNK : dipecah_jadi
+    MESSAGE ||--o{ MESSAGE_KB_CHUNK_REF : merujuk
+    KB_CHUNK ||--o{ MESSAGE_KB_CHUNK_REF : dirujuk_oleh
+
+    CONTACT {
+        uuid id PK
+        string name
+        string email
+        datetime created_at
+    }
+
+    TAG {
+        uuid id PK
+        string label
+    }
+
+    CONTACT_TAG {
+        uuid contact_id FK
+        uuid tag_id FK
+    }
+
+    CONVERSATION {
+        uuid id PK
+        uuid contact_id FK
+        uuid agent_id FK
+        string status
+        datetime started_at
+        datetime ended_at
+    }
+
+    MESSAGE {
+        uuid id PK
+        uuid conversation_id FK
+        string sender_type
+        text content
+        float confidence_score
+        datetime sent_at
+    }
+
+    KNOWLEDGE_BASE_DOCUMENT {
+        uuid id PK
+        string title
+        string source_type
+        datetime uploaded_at
+    }
+
+    KB_CHUNK {
+        uuid id PK
+        uuid document_id FK
+        text content
+        vector embedding
+    }
+
+    MESSAGE_KB_CHUNK_REF {
+        uuid message_id FK
+        uuid kb_chunk_id FK
+        float relevance_score
+    }
+
+    AGENT {
+        uuid id PK
+        string name
+        string email
+        string role
+    }
+
+    SYSTEM_CONFIG {
+        uuid id PK
+        text system_prompt
+        string business_hours
+        string fallback_message
+    }
