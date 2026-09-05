@@ -1,19 +1,26 @@
+import os
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Sysend - AI CS Chatbot Aspripay")
+
+allowed_origins = [
+    o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins or ["*"],  # fallback "*" cuma buat dev lokal
+    allow_credentials=True,
+    allow_methods=["POST", "GET"],
+    allow_headers=["X-API-Key", "Content-Type"],
+)
 
 
 @app.get("/health")
 def health_check():
-    """Basic health check endpoint - juga dipakai buat cek Ollama & Qdrant nanti."""
     return {"status": "ok", "service": "sysend-backend"}
 
 
 from app.api import chat
-
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
-
-# Router lain nyusul setelah dibuat:
-# from app.api import kb, inbox
-# app.include_router(kb.router, prefix="/api/kb", tags=["knowledge-base"])
-# app.include_router(inbox.router, prefix="/api/inbox", tags=["inbox"])

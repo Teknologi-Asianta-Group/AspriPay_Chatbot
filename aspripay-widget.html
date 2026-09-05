@@ -3,17 +3,20 @@
   Widget chat aspripay - embeddable.
 
   CARA PAKAI:
-  1. Untuk demo/testing: buka file ini langsung di browser.
+  1. Untuk demo/testing: taruh file ini SEJAJAR dengan astri.png (folder yang sama),
+     lalu buka file ini langsung di browser.
   2. Untuk embed di halaman website aspripay yang sudah ada:
      copy seluruh isi tag <style> dan <script> di bawah, taruh sebelum
      tag </body> di halaman HTML aspripay. Tidak perlu tag <!DOCTYPE>/<html>/<body> ini.
-  3. Ganti API_BASE_URL di bagian JS sesuai alamat backend production nanti
-     (sekarang masih localhost buat testing).
+     Pastikan astri.png ikut di-upload ke server yang sama, atau ganti AVATAR_URL
+     jadi URL penuh (misal https://aspripay.com/assets/astri.png).
+  3. Ganti API_BASE_URL & API_KEY di bagian JS sesuai alamat + key backend
+     production nanti (sekarang masih pakai URL ngrok buat testing/demo).
 -->
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Demo Widget Chat Aspripay</title>
+<title>Astri - Asisten Aspripay</title>
 <style>
   :root {
     --maroon: #741B1B;
@@ -50,6 +53,15 @@
     z-index: 9999;
     border: 2px solid var(--kunyit-light);
     transition: transform 0.15s ease, background 0.15s ease;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  #aspripay-chat-bubble img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
   }
 
   #aspripay-chat-bubble:hover {
@@ -82,12 +94,45 @@
   #aspripay-chat-header {
     background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
     color: var(--mori);
-    padding: 14px 16px;
+    padding: 12px 16px;
     font-weight: 600;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 3px solid var(--kunyit);
+  }
+
+  #aspripay-chat-header-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #aspripay-header-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--kunyit-light);
+    background: var(--mori);
+    flex-shrink: 0;
+  }
+
+  #aspripay-header-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+
+  #aspripay-header-name {
+    font-size: 14.5px;
+    font-weight: 700;
+  }
+
+  #aspripay-header-sub {
+    font-size: 11px;
+    font-weight: 400;
+    opacity: 0.85;
   }
 
   #aspripay-chat-close {
@@ -112,10 +157,30 @@
     background: var(--mori);
   }
 
+  .aspripay-msg-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .aspripay-msg-row.visitor {
+    justify-content: flex-end;
+  }
+
+  .aspripay-row-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--kunyit-light);
+    background: #fff;
+  }
+
   .aspripay-msg {
     white-space: pre-wrap;
-    max-width: 80%;
-    margin-bottom: 10px;
+    max-width: 78%;
     padding: 8px 12px;
     border-radius: 12px;
     font-size: 14px;
@@ -126,14 +191,12 @@
   .aspripay-msg.visitor {
     background: var(--maroon);
     color: var(--mori);
-    margin-left: auto;
     border-bottom-right-radius: 2px;
   }
 
   .aspripay-msg.ai {
     background: #ffffff;
     color: var(--arang);
-    margin-right: auto;
     border-bottom-left-radius: 2px;
     box-shadow: 0 1px 3px rgba(46, 23, 16, 0.12);
     border: 1px solid var(--gray-100);
@@ -153,7 +216,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin: 0 0 10px 0;
+    margin: 0 0 10px 30px;
     max-width: 90%;
   }
 
@@ -204,7 +267,7 @@
 
   .aspripay-followup {
     max-width: 90%;
-    margin: 0 auto 10px auto;
+    margin: 0 auto 10px 30px;
     padding: 10px 12px;
     background: var(--gray-100);
     border: 1px solid var(--kunyit-light);
@@ -293,6 +356,9 @@
   }
 
   .aspripay-typing {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 13px;
     color: var(--gray-500);
     padding: 4px 12px;
@@ -302,11 +368,19 @@
 </head>
 <body>
 
-<button id="aspripay-chat-bubble" title="Chat dengan kami">💬</button>
+<button id="aspripay-chat-bubble" title="Chat dengan Astri">
+  <img src="astri.png" alt="Astri" onerror="this.style.display='none'; this.parentElement.textContent='💬';">
+</button>
 
 <div id="aspripay-chat-window">
   <div id="aspripay-chat-header">
-    <span>Aspripay Customer Service</span>
+    <div id="aspripay-chat-header-info">
+      <img id="aspripay-header-avatar" src="astri.png" alt="Astri" onerror="this.style.display='none';">
+      <div id="aspripay-header-text">
+        <span id="aspripay-header-name">Astri</span>
+        <span id="aspripay-header-sub">Asisten Aspripay</span>
+      </div>
+    </div>
     <button id="aspripay-chat-close">✕</button>
   </div>
   <div id="aspripay-chat-messages"></div>
@@ -318,7 +392,11 @@
 
 <script>
 (function () {
-  const API_BASE_URL = "http://127.0.0.1:8000";
+  // ==== GANTI SESUAI BACKEND KAMU ====
+  const API_BASE_URL = "https://trout-wielder-stove.ngrok-free.dev";
+  const API_KEY = "key_demo_123";
+  const AVATAR_URL = "astri.png"; // ganti ke URL penuh kalau di-host online, misal https://aspripay.com/assets/astri.png
+  // ====================================
 
   // Pertanyaan FAQ paling umum -- tombol ini muncul begitu chat dibuka
   // pertama kali. Klik langsung jalan lewat sendMessage() yang sama seperti
@@ -357,11 +435,27 @@
     chatWindow.classList.remove("open");
   });
 
+  // Bikin baris pesan -- pesan AI dikasih avatar Astri kecil di kiri,
+  // pesan visitor rata kanan tanpa avatar.
   function appendMessage(text, sender) {
-    const el = document.createElement("div");
-    el.className = "aspripay-msg " + sender;
-    el.textContent = text;
-    messagesEl.appendChild(el);
+    const row = document.createElement("div");
+    row.className = "aspripay-msg-row " + sender;
+
+    if (sender === "ai") {
+      const avatar = document.createElement("img");
+      avatar.className = "aspripay-row-avatar";
+      avatar.src = AVATAR_URL;
+      avatar.alt = "Astri";
+      avatar.onerror = function () { this.style.visibility = "hidden"; };
+      row.appendChild(avatar);
+    }
+
+    const bubbleEl = document.createElement("div");
+    bubbleEl.className = "aspripay-msg " + sender;
+    bubbleEl.textContent = text;
+    row.appendChild(bubbleEl);
+
+    messagesEl.appendChild(row);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
@@ -452,7 +546,10 @@
     try {
       const res = await fetch(API_BASE_URL + "/api/chat/escalate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": API_KEY,
+        },
         body: JSON.stringify({ conversation_id: conversationId }),
       });
       if (!res.ok) throw new Error("gagal");
@@ -466,7 +563,7 @@
     const el = document.createElement("div");
     el.className = "aspripay-typing";
     el.id = "aspripay-typing-indicator";
-    el.textContent = "Sedang mengetik...";
+    el.textContent = "Astri sedang mengetik...";
     messagesEl.appendChild(el);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
@@ -490,7 +587,10 @@
     try {
       const res = await fetch(API_BASE_URL + "/api/chat/message", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": API_KEY,
+        },
         body: JSON.stringify({
           conversation_id: conversationId,
           message: text,
@@ -529,7 +629,7 @@
     if (e.key === "Enter") sendMessage();
   });
 
-  appendMessage("Halo! Ada yang bisa kami bantu seputar aspripay?", "ai");
+  appendMessage("Halo! Aku Astri, asisten Aspripay. Ada yang bisa dibantu?", "ai");
   appendStarterQuestions(STARTER_QUESTIONS);
 })();
 </script>

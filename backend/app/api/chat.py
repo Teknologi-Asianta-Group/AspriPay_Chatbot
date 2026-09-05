@@ -1,10 +1,13 @@
 """Endpoint chat - terima pesan pengunjung, jalankan RAG pipeline, simpan ke MySQL, return jawaban."""
 
+import uuid
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.answer_menu import extract_menu_items, normalize_list_answer
+from app.core.auth import verify_api_key
 from app.db.session import get_db
 from app.rag.indexing import get_document_store
 from app.rag.query_pipeline import (
@@ -16,14 +19,13 @@ from app.rag.query_pipeline import (
 from app.memory.graph_query import ask_graph
 from app.services import chat_service
 
-router = APIRouter()
+# Semua endpoint di router ini wajib kirim header X-API-Key yang valid
+router = APIRouter(dependencies=[Depends(verify_api_key)])
 
 # Document store & pipeline di-build sekali saat startup, bukan per-request
 _document_store = get_document_store()
 _engine = build_query_pipeline(_document_store)
 
-# Kalau Cognee balikin salah satu pola ini, berarti graph-nya tidak nemu apa-apa.
-# Jangan diteruskan ke pengunjung - lebih baik eskalasi daripada jawaban ngambang.
 _COGNEE_EMPTY_MARKERS = (
     "tidak tahu",
     "tidak ada informasi",
@@ -44,8 +46,6 @@ def _is_usable_graph_answer(text: str) -> bool:
     return not any(marker in lowered for marker in _COGNEE_EMPTY_MARKERS)
 
 
-# Tombol yang ditawarkan ke pengunjung. Sengaja dikirim dari backend, bukan
-# di-hardcode di widget, biar teks & pilihannya bisa diubah tanpa sentuh frontend.
 _LOW_CONFIDENCE_OPTIONS = [
     {"label": "Hubungkan ke CS", "action": "contact_agent"},
     {"label": "Sudah jelas, terima kasih", "action": "dismiss"},
@@ -87,6 +87,12 @@ class ChatResponse(BaseModel):
     # Jawaban berbentuk daftar dipecah jadi tombol biar tidak jadi tembok teks.
     # Kosong artinya jawabannya ditampilkan biasa.
     quick_replies: list[QuickReply] = []
+
+
+@router.get("/init")
+def init_conversation():
+    """Dipanggil widget saat pertama kali load di web klien - generate conversation_id baru."""
+    return {"conversation_id": str(uuid.uuid4())}
 
 
 @router.post("/message", response_model=ChatResponse)
